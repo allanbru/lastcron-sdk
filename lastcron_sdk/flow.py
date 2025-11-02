@@ -3,7 +3,7 @@
 import functools
 import sys
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 import traceback
 from .logger import OrchestratorLogger
 from .client import OrchestratorClient
@@ -11,6 +11,26 @@ from .client import OrchestratorClient
 # Global instances will be set by the wrapper
 CLIENT: Optional[OrchestratorClient] = None
 LOGGER: Optional[OrchestratorLogger] = None
+
+class FlowContext:
+    initialized = False
+    parameters: Dict[str, Any]
+    blocks: List[Dict[str, Any]]
+    logger: OrchestratorLogger
+    
+    def __init__(self, parameters: Dict[str, Any], blocks: Dict[str, Any], logger: OrchestratorLogger):
+        self.initialized = True
+        self.parameters = parameters
+        self.blocks = blocks
+        self.logger = logger
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'FlowContext':
+        return cls(
+            parameters=data.get('parameters', {}),
+            blocks=data.get('blocks', []),
+            logger=LOGGER
+        )
 
 def flow(func):
     """
@@ -54,8 +74,14 @@ def flow(func):
                 'logger': LOGGER
             }
             
+            if FlowContext.initialized:
+                # TODO: if we're calling another run, we should trigger it via API
+                raise RuntimeError("Flow context already initialized. Ensure the flow decorator is used only once.")
+                
+            FlowContext.from_dict(details)
+            
             # Call the user's function
-            func(**flow_kwargs)
+            func(**flow_kwargs['parameters'])
             
             # --- Success Callback ---
             LOGGER.log('INFO', "Flow finished execution successfully.")
@@ -69,3 +95,13 @@ def flow(func):
             sys.exit(1) # Ensure the external process exits with an error code
             
     return wrapper
+
+def get_run_logger() -> OrchestratorLogger:
+    """
+    Returns the global logger instance for the current run.
+    """
+    if FlowContext.initialized:
+        return FlowContext.logger
+    
+    raise RuntimeError("Flow context not initialized. Ensure the flow decorator is used.")
+
