@@ -1,13 +1,14 @@
 # lastcron/client.py
 
-import sys
 import importlib
 import os
+import sys
 import traceback
-from typing import Dict, Any, Optional, Union
 from datetime import datetime
-from lastcron.logger import OrchestratorLogger
+from typing import Any, Dict, Optional, Union
+
 from lastcron.api_client import APIClient
+from lastcron.logger import OrchestratorLogger
 
 
 class OrchestratorClient:
@@ -129,35 +130,35 @@ def execute_lastcron_flow(run_id: str, token: str, api_base_url: str):
         # --- 1. Initial Status Update ---
         client.update_status('RUNNING')
         logger.log('INFO', f"LastCron execution started for Run ID: {run_id}.")
-        
+
         # --- 2. Fetch Details ---
         details = client.get_run_details()
         if not details:
             raise RuntimeError("Could not retrieve run details from API.")
 
         entrypoint = details['flow_entrypoint']
-        
+
         # --- 3. Execute the Decorated Flow ---
-        
+
         # Dynamically import the entrypoint function defined by the user
         module_path, func_name = entrypoint.split(':')
-        
+
         # Correctly import the module from the user's repository structure
         # (e.g., 'src/pipeline.py' becomes 'src.pipeline')
         module_path = module_path.replace('/', '.').replace('.py', '')
-        
+
         # Temporarily add the repository path to Python's path so imports work
-        repo_root = os.getcwd() 
-        sys.path.insert(0, repo_root) 
-        
+        repo_root = os.getcwd()
+        sys.path.insert(0, repo_root)
+
         # The imported module will contain the function decorated with @flow
         module = importlib.import_module(module_path)
         flow_function = getattr(module, func_name)
-        
-        # Since the flow function is decorated with @flow, calling it will 
+
+        # Since the flow function is decorated with @flow, calling it will
         # trigger all orchestration logic (status updates, block passing, etc.).
         flow_function()
-        
+
     except Exception as e:
         error_details = f"Execution failed during bootstrap or pre-run phase: {e}\n{traceback.format_exc()}"
         logger.log('ERROR', error_details)

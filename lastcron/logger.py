@@ -2,7 +2,7 @@
 
 import datetime
 import sys
-from typing import Literal, TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Literal, Optional
 
 if TYPE_CHECKING:
     # Prevents circular imports and provides type hints
@@ -91,15 +91,15 @@ class OrchestratorLogger:
 
         # Send to the API asynchronously if possible, or synchronously as a fallback
         self.client.send_log_entry(log_entry)
-        
+
     def info(self, message: str):
         """Logs an informational message."""
         self.log('INFO', message)
-        
+
     def warning(self, message: str):
         """Logs a warning message."""
         self.log('WARNING', message)
-        
+
     def error(self, message: str):
         """Logs an error message."""
         self.log('ERROR', message)

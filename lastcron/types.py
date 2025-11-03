@@ -6,10 +6,9 @@ for better type safety and IDE support.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Literal, Optional, Union
 from datetime import datetime
 from enum import Enum
-
+from typing import Any, Callable, Dict, List, Optional, Union
 
 # ============================================================================
 # Enums
@@ -62,7 +61,7 @@ class Block:
     is_secret: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Block':
         """Create a Block from a dictionary (API response)."""
@@ -76,7 +75,7 @@ class Block:
             created_at=cls._parse_datetime(data.get('created_at')),
             updated_at=cls._parse_datetime(data.get('updated_at'))
         )
-    
+
     @staticmethod
     def _parse_datetime(dt_str: Optional[str]) -> Optional[datetime]:
         """Parse datetime string from API response."""
@@ -113,7 +112,7 @@ class Flow:
     description: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Flow':
         """Create a Flow from a dictionary (API response)."""
@@ -157,7 +156,7 @@ class FlowRun:
     message: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'FlowRun':
         """Create a FlowRun from a dictionary (API response)."""
@@ -199,7 +198,7 @@ class Workspace:
     git_branch: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Workspace':
         """Create a Workspace from a dictionary (API response)."""
@@ -250,7 +249,7 @@ class TriggerFlowRequest:
 class TriggerFlowResponse:
     """Response from triggering a flow."""
     run: FlowRun
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'TriggerFlowResponse':
         """Create from API response."""
@@ -268,7 +267,7 @@ class GetBlockRequest:
 class ListBlocksResponse:
     """Response from listing blocks."""
     blocks: BlockList
-    
+
     @classmethod
     def from_dict(cls, data: List[Dict[str, Any]]) -> 'ListBlocksResponse':
         """Create from API response."""

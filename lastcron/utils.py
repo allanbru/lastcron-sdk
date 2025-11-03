@@ -1,8 +1,8 @@
 # lastcron/utils.py
 
+import re
 from datetime import datetime, timezone
 from typing import Optional, Union
-import re
 
 
 def validate_and_format_timestamp(
@@ -37,7 +37,7 @@ def validate_and_format_timestamp(
     """
     if timestamp is None:
         return None
-    
+
     # Handle datetime objects
     if isinstance(timestamp, datetime):
         # Get current time - use UTC if timestamp is timezone-aware, otherwise use naive
@@ -53,7 +53,7 @@ def validate_and_format_timestamp(
                 f"Provided: {timestamp.isoformat()}, Current: {current_time.isoformat()}"
             )
         return timestamp.isoformat()
-    
+
     # Handle string timestamps
     if isinstance(timestamp, str):
         # Validate ISO format
@@ -63,13 +63,13 @@ def validate_and_format_timestamp(
                 f"Invalid timestamp format. Expected ISO format (YYYY-MM-DDTHH:MM:SS), "
                 f"got: {timestamp}"
             )
-        
+
         # Try to parse and validate it's in the future
         try:
             # Handle timezone-aware strings by removing timezone info for comparison
             timestamp_clean = timestamp.split('+')[0].split('Z')[0].split('.')[0]
             parsed = datetime.fromisoformat(timestamp_clean)
-            
+
             if parsed < datetime.now():
                 raise ValueError(
                     f"Scheduled start time must be in the future. "
@@ -79,9 +79,9 @@ def validate_and_format_timestamp(
             if "must be in the future" in str(e):
                 raise
             raise ValueError(f"Invalid timestamp string: {timestamp}. Error: {e}")
-        
+
         return timestamp
-    
+
     # Invalid type
     raise TypeError(
         f"Timestamp must be datetime object, ISO format string, or None. "
@@ -104,13 +104,13 @@ def validate_flow_name(flow_name: str) -> str:
     """
     if not flow_name:
         raise ValueError("Flow name cannot be empty")
-    
+
     if not isinstance(flow_name, str):
         raise TypeError(f"Flow name must be a string, got: {type(flow_name).__name__}")
-    
+
     if len(flow_name) > 255:
         raise ValueError(f"Flow name too long (max 255 characters): {len(flow_name)}")
-    
+
     return flow_name.strip()
 
 
@@ -129,11 +129,11 @@ def validate_parameters(parameters: Optional[dict]) -> Optional[dict]:
     """
     if parameters is None:
         return None
-    
+
     if not isinstance(parameters, dict):
         raise TypeError(
             f"Parameters must be a dictionary or None, got: {type(parameters).__name__}"
         )
-    
+
     return parameters
 

@@ -1,14 +1,15 @@
 # lastcron/flow.py
 
-import functools
-import sys
-import os
 import atexit
-from typing import Any, Optional, Dict, List
+import functools
+import os
+import sys
 import traceback
-from lastcron.logger import OrchestratorLogger
+from typing import Any, Dict, List, Optional
+
 from lastcron.client import OrchestratorClient
-from lastcron.types import Parameters, FlowRun, FlowFunction, Timestamp, Block
+from lastcron.logger import OrchestratorLogger
+from lastcron.types import Block, FlowFunction, FlowRun, Parameters, Timestamp
 
 # Global instances will be set by the wrapper
 CLIENT: Optional[OrchestratorClient] = None
@@ -170,7 +171,7 @@ def flow(func: FlowFunction) -> FlowWrapper:
             api_base = os.environ.get('ORCH_API_BASE_URL')
 
             if not all([run_id, token, api_base]):
-                raise EnvironmentError("Flow cannot run. Orchestration environment variables are missing.")
+                raise OSError("Flow cannot run. Orchestration environment variables are missing.")
 
             # Use lazy import to prevent circular dependency issues
             from lastcron.client import OrchestratorClient
@@ -204,7 +205,7 @@ def flow(func: FlowFunction) -> FlowWrapper:
             else:
                 # If logger already exists, add the secrets
                 LOGGER.add_secrets(FlowContext.secrets)
-                
+
             FlowContext.logger = LOGGER
 
             # Get user parameters from the run details
