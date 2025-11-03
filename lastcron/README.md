@@ -19,9 +19,9 @@ Python SDK for building flows that run in the LastCron orchestrator.
 The SDK is included in your workspace repository. Import it in your Python flows:
 
 ```python
-from lastcron_sdk import flow, run_flow, get_block
-from lastcron_sdk import Block, FlowRun, BlockType, FlowRunState
-from lastcron_sdk import APIClient, AsyncAPIClient
+from lastcron import flow, run_flow, get_block
+from lastcron import Block, FlowRun, BlockType, FlowRunState
+from lastcron import APIClient, AsyncAPIClient
 ```
 
 ## Quick Start
@@ -29,7 +29,7 @@ from lastcron_sdk import APIClient, AsyncAPIClient
 ### Basic Flow
 
 ```python
-from lastcron_sdk import flow
+from lastcron import flow
 
 @flow
 def my_flow(logger, workspace_id, **params):
@@ -45,7 +45,7 @@ def my_flow(logger, workspace_id, **params):
 ### Triggering Other Flows (New .submit() Method)
 
 ```python
-from lastcron_sdk import flow, FlowRun
+from lastcron import flow, FlowRun
 from datetime import datetime, timedelta
 
 @flow
@@ -69,7 +69,7 @@ def orchestrator(logger, workspace_id, **params):
 ### Retrieving Configuration Blocks
 
 ```python
-from lastcron_sdk import flow, get_block, Block
+from lastcron import flow, get_block, Block
 
 @flow
 def my_flow(logger, workspace_id, **params):
@@ -95,7 +95,7 @@ The `@flow` decorator is the main entry point for your flows. It handles:
 ### Basic Flow Example
 
 ```python
-from lastcron_sdk import flow
+from lastcron import flow
 
 @flow
 def my_flow(logger, workspace_id, **params):
@@ -171,7 +171,7 @@ Returns `None` if the trigger request failed.
 #### Example 1: Trigger a Flow Immediately
 
 ```python
-from lastcron_sdk import flow, run_flow
+from lastcron import flow, run_flow
 
 @flow
 def data_pipeline(logger, **params):
@@ -195,7 +195,7 @@ def data_pipeline(logger, **params):
 #### Example 2: Trigger with Parameters
 
 ```python
-from lastcron_sdk import flow, run_flow
+from lastcron import flow, run_flow
 
 @flow
 def orchestrator_flow(logger, **params):
@@ -218,7 +218,7 @@ def orchestrator_flow(logger, **params):
 #### Example 3: Schedule a Flow for Later
 
 ```python
-from lastcron_sdk import flow, run_flow
+from lastcron import flow, run_flow
 from datetime import datetime, timedelta
 
 @flow
@@ -241,7 +241,7 @@ def scheduler_flow(logger, **params):
 #### Example 4: Chain Multiple Flows
 
 ```python
-from lastcron_sdk import flow, run_flow
+from lastcron import flow, run_flow
 
 @flow
 def etl_orchestrator(logger, **params):
@@ -288,7 +288,7 @@ def etl_orchestrator(logger, **params):
 #### Example 5: Conditional Flow Triggering
 
 ```python
-from lastcron_sdk import flow, run_flow
+from lastcron import flow, run_flow
 
 @flow
 def data_quality_check(logger, **params):
@@ -365,7 +365,7 @@ For advanced use cases, you can use the `APIClient` or `AsyncAPIClient` directly
 ### Synchronous API Client
 
 ```python
-from lastcron_sdk import APIClient
+from lastcron import APIClient
 
 # Initialize with your authentication token
 client = APIClient(token="your_token", base_url="http://localhost/api")
@@ -387,7 +387,7 @@ logs = client.get_run_logs(run_id=123)
 ### Asynchronous API Client
 
 ```python
-from lastcron_sdk import AsyncAPIClient
+from lastcron import AsyncAPIClient
 import asyncio
 
 async def main():
@@ -486,7 +486,7 @@ run_flow('a' * 300)  # ValueError!
 The SDK provides comprehensive error handling:
 
 ```python
-from lastcron_sdk import flow, run_flow
+from lastcron import flow, run_flow
 
 @flow
 def my_flow(logger, **params):

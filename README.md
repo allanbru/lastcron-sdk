@@ -248,7 +248,7 @@ pip install -e ".[dev]"
 pytest
 
 # Run with coverage
-pytest --cov=lastcron_sdk --cov-report=html
+pytest --cov=lastcron --cov-report=html
 
 # Run specific test file
 pytest tests/test_flow.py
@@ -258,20 +258,20 @@ pytest tests/test_flow.py
 
 ```bash
 # Format code
-black lastcron_sdk/
+black lastcron/
 
 # Lint code
-ruff check lastcron_sdk/
+ruff check lastcron/
 
 # Type check
-mypy lastcron_sdk/
+mypy lastcron/
 ```
 
 ## 📖 Documentation
 
 For detailed documentation, see:
 
-- [SDK Documentation](lastcron_sdk/README.md) - Comprehensive SDK guide
+- [SDK Documentation](lastcron/README.md) - Comprehensive SDK guide
 - [Contributing Guide](CONTRIBUTING.md) - How to contribute
 - [Examples](examples/) - Example flows and use cases
 

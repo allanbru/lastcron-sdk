@@ -8,8 +8,6 @@ version = "0.1.0"
 description = "Python SDK for building and orchestrating workflows with LastCron"
 readme = "README.md"
 requires-python = ">=3.8"
-license = "Elastic-2.0"
-license-files = ["LICENSE"]
 authors = [
     {name = "AllanBR Creations", email = "allan@allanbr.net"}
 ]
@@ -65,10 +63,10 @@ Issues = "https://github.com/allanbru/lastcron-sdk/issues"
 Changelog = "https://github.com/allanbru/lastcron-sdk/releases"
 
 [tool.setuptools]
-packages = ["lastcron_sdk"]
+packages = ["lastcron"]
 
 [tool.setuptools.package-data]
-lastcron_sdk = ["py.typed"]
+lastcron = ["py.typed"]
 
 [tool.black]
 line-length = 100
@@ -128,7 +126,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers --cov=lastcron_sdk --cov-report=term-missing"
+addopts = "-ra -q --strict-markers --cov=lastcron --cov-report=term-missing"
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
@@ -136,7 +134,7 @@ python_functions = ["test_*"]
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["lastcron_sdk"]
+source = ["lastcron"]
 omit = [
     "*/tests/*",
     "*/__pycache__/*",

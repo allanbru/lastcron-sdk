@@ -1,11 +1,11 @@
-# lastcron_sdk/api_client.py
+# lastcron/api_client.py
 
 import requests
 import sys
 from typing import Dict, Any, Optional, Union, List
 from datetime import datetime
-from lastcron_sdk.utils import validate_and_format_timestamp, validate_flow_name, validate_parameters
-from lastcron_sdk.types import Block, Flow, FlowRun, Parameters, APIResponse
+from lastcron.utils import validate_and_format_timestamp, validate_flow_name, validate_parameters
+from lastcron.types import Block, Flow, FlowRun, Parameters, APIResponse
 
 
 class APIClient:

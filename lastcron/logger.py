@@ -1,4 +1,4 @@
-# lastcron_sdk/logger.py
+# lastcron/logger.py
 
 import datetime
 import sys
@@ -6,7 +6,7 @@ from typing import Literal, TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     # Prevents circular imports and provides type hints
-    from lastcron_sdk.client import OrchestratorClient
+    from lastcron.client import OrchestratorClient
 
 class OrchestratorLogger:
     """

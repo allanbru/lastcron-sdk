@@ -1,4 +1,6 @@
-# lastcron_sdk/__init__.py
+# lastcron/__init__.py
+
+__version__ = "0.1.0"
 
 from .flow import flow, run_flow, get_block, get_run_logger, get_workspace_id
 from .client import execute_lastcron_flow, main as cli_main

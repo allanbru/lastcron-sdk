@@ -2,8 +2,8 @@ include README.md
 include LICENSE
 include CONTRIBUTING.md
 include pyproject.toml
-recursive-include lastcron_sdk *.py
-recursive-include lastcron_sdk py.typed
+recursive-include lastcron *.py
+recursive-include lastcron py.typed
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 

@@ -31,20 +31,20 @@ jobs:
 
     - name: Lint with ruff
       run: |
-        ruff check lastcron_sdk/
+        ruff check lastcron/
 
     - name: Check formatting with black
       run: |
-        black --check lastcron_sdk/
+        black --check lastcron/
 
     - name: Type check with mypy
       run: |
-        mypy lastcron_sdk/
+        mypy lastcron/
       continue-on-error: true  # Don't fail on type errors initially
 
     - name: Run tests with pytest
       run: |
-        pytest --cov=lastcron_sdk --cov-report=xml --cov-report=term-missing
+        pytest --cov=lastcron --cov-report=xml --cov-report=term-missing
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4

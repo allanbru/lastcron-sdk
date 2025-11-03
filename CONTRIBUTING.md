@@ -102,13 +102,13 @@ Before committing, format your code:
 
 ```bash
 # Format code with black
-black lastcron_sdk/
+black lastcron/
 
 # Check with ruff
-ruff check lastcron_sdk/
+ruff check lastcron/
 
 # Type check with mypy
-mypy lastcron_sdk/
+mypy lastcron/
 ```
 
 ### Docstring Example
@@ -150,7 +150,7 @@ Run the test suite:
 pytest
 
 # Run with coverage report
-pytest --cov=lastcron_sdk --cov-report=html
+pytest --cov=lastcron --cov-report=html
 
 # Run specific test file
 pytest tests/test_flow.py
@@ -172,7 +172,7 @@ pytest tests/test_flow.py::test_flow_decorator
 
 ```python
 import pytest
-from lastcron_sdk import flow
+from lastcron import flow
 
 def test_flow_decorator_basic():
     """Test that the flow decorator works with a basic function."""

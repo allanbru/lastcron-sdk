@@ -1,4 +1,4 @@
-# lastcron_sdk/client.py
+# lastcron/client.py
 
 import sys
 import importlib
@@ -6,8 +6,8 @@ import os
 import traceback
 from typing import Dict, Any, Optional, Union
 from datetime import datetime
-from lastcron_sdk.logger import OrchestratorLogger
-from lastcron_sdk.api_client import APIClient
+from lastcron.logger import OrchestratorLogger
+from lastcron.api_client import APIClient
 
 
 class OrchestratorClient:
@@ -173,10 +173,10 @@ def main():
     """
     CLI entry point for the LastCron SDK.
 
-    This function is called when running: python -m lastcron_sdk
+    This function is called when running: python -m lastcron
     It replaces the need for orchestrator_wrapper.py in each repository.
 
-    The Laravel backend should call: python -m lastcron_sdk
+    The Laravel backend should call: python -m lastcron
     instead of: python orchestrator_wrapper.py
     """
     # The PHP FlowExecutor sets these environment variables:

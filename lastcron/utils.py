@@ -1,4 +1,4 @@
-# lastcron_sdk/utils.py
+# lastcron/utils.py
 
 from datetime import datetime, timezone
 from typing import Optional, Union

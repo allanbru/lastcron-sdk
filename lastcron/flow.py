@@ -1,4 +1,4 @@
-# lastcron_sdk/flow.py
+# lastcron/flow.py
 
 import functools
 import sys
@@ -6,9 +6,9 @@ import os
 import atexit
 from typing import Any, Optional, Dict, List
 import traceback
-from lastcron_sdk.logger import OrchestratorLogger
-from lastcron_sdk.client import OrchestratorClient
-from lastcron_sdk.types import Parameters, FlowRun, FlowFunction, Timestamp, Block
+from lastcron.logger import OrchestratorLogger
+from lastcron.client import OrchestratorClient
+from lastcron.types import Parameters, FlowRun, FlowFunction, Timestamp, Block
 
 # Global instances will be set by the wrapper
 CLIENT: Optional[OrchestratorClient] = None
@@ -173,7 +173,7 @@ def flow(func: FlowFunction) -> FlowWrapper:
                 raise EnvironmentError("Flow cannot run. Orchestration environment variables are missing.")
 
             # Use lazy import to prevent circular dependency issues
-            from lastcron_sdk.client import OrchestratorClient
+            from lastcron.client import OrchestratorClient
             CLIENT = OrchestratorClient(run_id, token, api_base)
             # Logger will be created after we fetch run details and extract secrets
             LOGGER = None
@@ -311,7 +311,7 @@ def get_run_logger() -> OrchestratorLogger:
     Returns the global logger instance for the current run.
 
     Example:
-        >>> from lastcron_sdk import flow, get_run_logger
+        >>> from lastcron import flow, get_run_logger
         >>>
         >>> @flow
         >>> def my_flow(**params):
@@ -329,7 +329,7 @@ def get_workspace_id() -> int:
     Returns the workspace ID for the current run.
 
     Example:
-        >>> from lastcron_sdk import flow, get_workspace_id
+        >>> from lastcron import flow, get_workspace_id
         >>>
         >>> @flow
         >>> def my_flow(**params):
