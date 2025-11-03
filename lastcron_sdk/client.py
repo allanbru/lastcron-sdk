@@ -1,45 +1,119 @@
 # lastcron_sdk/client.py
 
-import requests
 import sys
 import importlib
 import os
 import traceback
-from typing import Dict, Any, Optional
-from .logger import OrchestratorLogger
+from typing import Dict, Any, Optional, Union
+from datetime import datetime
+from lastcron_sdk.logger import OrchestratorLogger
+from lastcron_sdk.api_client import APIClient
+
 
 class OrchestratorClient:
-    """Handles low-level API communication with the Laravel orchestrator."""
+    """
+    High-level client for flow execution within the orchestrator.
+    Wraps the APIClient with run-specific context.
+    """
 
     def __init__(self, run_id: str, token: str, base_url: str):
-        self.run_id = run_id
-        self.base_url = base_url.rstrip('/')
-        self.headers = {"Authorization": f"Bearer {token}"}
+        """
+        Initialize the orchestrator client.
 
-    def _call(self, method: str, endpoint: str, json_data: Optional[Dict[str, Any]] = None):
-        """Internal method to execute authenticated HTTP requests."""
-        url = f"{self.base_url}/{endpoint}"
-        try:
-            response = requests.request(method, url, headers=self.headers, json=json_data, timeout=30)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            # Log failure to stderr, but allow execution to continue unless critical
-            print(f"API Communication Error to {endpoint}: {e}", file=sys.stderr)
-            return None
+        Args:
+            run_id: The current run ID
+            token: Run authentication token
+            base_url: Base URL for the orchestrator API
+        """
+        self.run_id = run_id
+        self.api = APIClient(token, base_url)
+        self._workspace_id: Optional[int] = None
 
     def get_run_details(self) -> Optional[Dict[str, Any]]:
-        """Fetches flow entrypoint, parameters, and blocks."""
-        return self._call('GET', f"runs/{self.run_id}")
+        """
+        Fetches flow entrypoint, parameters, and blocks for the current run.
 
-    def update_status(self, state: str, message: str = None, exit_code: int = None):
-        """Updates the flow state (RUNNING, COMPLETED, FAILED)."""
-        data = {'state': state, 'message': message, 'exit_code': exit_code}
-        self._call('POST', f"runs/{self.run_id}/status", json_data=data)
-    
+        Returns:
+            Dictionary with run details or None on error
+        """
+        details = self.api.get_run_details(self.run_id)
+
+        # Cache workspace_id for later use
+        if details and 'workspace_id' in details:
+            self._workspace_id = details['workspace_id']
+
+        return details
+
+    def update_status(
+        self,
+        state: str,
+        message: Optional[str] = None,
+        exit_code: Optional[int] = None
+    ):
+        """
+        Updates the flow state (RUNNING, COMPLETED, FAILED).
+
+        Args:
+            state: New state
+            message: Optional status message
+            exit_code: Optional exit code
+        """
+        self.api.update_run_status(self.run_id, state, message, exit_code)
+
     def send_log_entry(self, log_entry: Dict[str, Any]):
-        """Sends a single log entry."""
-        self._call('POST', f"runs/{self.run_id}/logs", json_data=log_entry)
+        """
+        Sends a single log entry.
+
+        Args:
+            log_entry: Log entry data
+        """
+        self.api.send_log_entry(self.run_id, log_entry)
+
+    @property
+    def workspace_id(self) -> Optional[int]:
+        """
+        Gets the workspace ID for the current run.
+        Fetches run details if not already cached.
+
+        Returns:
+            Workspace ID or None
+        """
+        if self._workspace_id is None:
+            self.get_run_details()
+        return self._workspace_id
+
+    def trigger_flow_by_name(
+        self,
+        flow_name: str,
+        parameters: Optional[Dict[str, Any]] = None,
+        scheduled_start: Optional[Union[str, datetime]] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Triggers another flow in the same workspace by name.
+
+        Args:
+            flow_name: The name of the flow to trigger
+            parameters: Optional parameters dictionary
+            scheduled_start: Optional datetime or ISO string for scheduling
+
+        Returns:
+            Created flow run details or None on error
+
+        Raises:
+            ValueError: If flow not found or validation fails
+            RuntimeError: If workspace ID cannot be determined
+        """
+        workspace_id = self.workspace_id
+
+        if workspace_id is None:
+            raise RuntimeError("Cannot determine workspace ID for current run")
+
+        return self.api.trigger_flow_by_name(
+            workspace_id,
+            flow_name,
+            parameters=parameters,
+            scheduled_start=scheduled_start
+        )
 
 # --- Main Execution Function ---
 
@@ -93,3 +167,40 @@ def execute_lastcron_flow(run_id: str, token: str, api_base_url: str):
         # Clean up path change
         if 'repo_root' in locals():
             sys.path.pop(0)
+
+
+def main():
+    """
+    CLI entry point for the LastCron SDK.
+
+    This function is called when running: python -m lastcron_sdk
+    It replaces the need for orchestrator_wrapper.py in each repository.
+
+    The Laravel backend should call: python -m lastcron_sdk
+    instead of: python orchestrator_wrapper.py
+    """
+    # The PHP FlowExecutor sets these environment variables:
+    # ORCH_RUN_ID, ORCH_TOKEN, ORCH_API_BASE_URL
+    run_id = os.environ.get('ORCH_RUN_ID')
+    token = os.environ.get('ORCH_TOKEN')
+    api_base_url = os.environ.get('ORCH_API_BASE_URL')
+
+    if not all([run_id, token, api_base_url]):
+        # This scenario means the PHP launch failed to set critical environment variables
+        print("Fatal: Missing LastCron orchestration environment variables.", file=sys.stderr)
+        print("Required: ORCH_RUN_ID, ORCH_TOKEN, ORCH_API_BASE_URL", file=sys.stderr)
+        sys.exit(128)
+
+    try:
+        # Delegate all orchestration logic to the SDK
+        execute_lastcron_flow(run_id, token, api_base_url)
+
+    except Exception as e:
+        # If the SDK failed to initialize or execute, log the error here.
+        # The SDK should have already attempted an API callback, but this is a final fallback.
+        print(f"FATAL LastCron Execution Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

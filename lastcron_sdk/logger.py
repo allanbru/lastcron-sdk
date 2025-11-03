@@ -6,7 +6,7 @@ from typing import Literal, TYPE_CHECKING
 
 if TYPE_CHECKING:
     # Prevents circular imports and provides type hints
-    from .client import OrchestratorClient 
+    from lastcron_sdk.client import OrchestratorClient 
 
 class OrchestratorLogger:
     """Manages logging, sending entries to the Laravel API."""
