@@ -1,6 +1,6 @@
 # lastcron_sdk/__init__.py
 
-from .flow import flow, run_flow, get_block, get_run_logger
+from .flow import flow, run_flow, get_block, get_run_logger, get_workspace_id
 from .client import execute_lastcron_flow, main as cli_main
 from .api_client import APIClient
 from .async_api_client import AsyncAPIClient
@@ -16,6 +16,7 @@ __all__ = [
     'run_flow',
     'get_block',
     'get_run_logger',
+    'get_workspace_id',
     'execute_lastcron_flow',
     'cli_main',
 

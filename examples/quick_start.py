@@ -1,15 +1,16 @@
 """
 Quick Start Example - New LastCron SDK Features
 
-This example demonstrates the three new features in a simple, practical way:
+This example demonstrates the new features in a simple, practical way:
 1. Flow.submit() - Trigger flows by calling the function
 2. get_block() - Retrieve configuration blocks on-demand
 3. Strong typing - Type-safe dataclasses
+4. Clean flow signatures - Only receive your custom parameters
 
 Run this to see how the new SDK features work together.
 """
 
-from lastcron_sdk import flow, get_block, Block, FlowRun, BlockType
+from lastcron_sdk import flow, get_block, get_logger, get_workspace_id, Block, FlowRun, BlockType
 from datetime import datetime, timedelta
 
 
@@ -18,14 +19,15 @@ from datetime import datetime, timedelta
 # ============================================================================
 
 @flow
-def send_email(logger, workspace_id, **params):
+def send_email(recipient='user@example.com', subject='Hello', **params):
     """
     Sends an email using SMTP credentials from a block.
+
+    Notice: No logger or workspace_id parameters!
+    Access them via get_logger() and get_workspace_id()
     """
-    parameters = params.get('parameters', {})
-    recipient = parameters.get('recipient', 'user@example.com')
-    subject = parameters.get('subject', 'Hello')
-    
+    logger = get_logger()
+
     logger.info(f"Sending email to {recipient}")
     
     # Get SMTP credentials from a block
@@ -49,14 +51,13 @@ def send_email(logger, workspace_id, **params):
 
 
 @flow
-def generate_report(logger, workspace_id, **params):
+def generate_report(type='daily', **params):
     """
     Generates a report and saves it to S3.
     """
-    parameters = params.get('parameters', {})
-    report_type = parameters.get('type', 'daily')
-    
-    logger.info(f"Generating {report_type} report")
+    logger = get_logger()
+
+    logger.info(f"Generating {type} report")
     
     # Get AWS credentials from a block
     aws_creds: Block = get_block('aws-credentials')
@@ -78,13 +79,12 @@ def generate_report(logger, workspace_id, **params):
 
 
 @flow
-def cleanup_old_data(logger, workspace_id, **params):
+def cleanup_old_data(days_old=30, **params):
     """
     Cleans up old data from the database.
     """
-    parameters = params.get('parameters', {})
-    days_old = parameters.get('days_old', 30)
-    
+    logger = get_logger()
+
     logger.info(f"Cleaning up data older than {days_old} days")
     
     # Get database credentials
@@ -115,16 +115,20 @@ def cleanup_old_data(logger, workspace_id, **params):
 # ============================================================================
 
 @flow
-def daily_workflow(logger, workspace_id, **params):
+def daily_workflow(**params):
     """
     Main workflow that orchestrates multiple tasks.
-    
+
     This demonstrates:
     - Using .submit() to trigger flows
     - Getting configuration from blocks
     - Type-safe returns (FlowRun, Block)
     - Scheduling flows for later
+    - Clean flow signatures (no logger/workspace_id params)
     """
+    logger = get_logger()
+    workspace_id = get_workspace_id()
+
     logger.info("=== Daily Workflow Started ===")
     logger.info(f"Running in workspace {workspace_id}")
     
@@ -208,14 +212,16 @@ def daily_workflow(logger, workspace_id, **params):
 # ============================================================================
 
 @flow
-def daily_workflow_old_style(logger, workspace_id, **params):
+def daily_workflow_old_style(**params):
     """
     Same workflow using the old run_flow() approach.
-    
+
     This still works, but .submit() is recommended for new code.
     """
     from lastcron_sdk import run_flow
-    
+
+    logger = get_logger()
+
     logger.info("=== Daily Workflow (Old Style) ===")
     
     # Old way: use run_flow() with string names
@@ -225,16 +231,11 @@ def daily_workflow_old_style(logger, workspace_id, **params):
         # Returns FlowRun dataclass (same as .submit())
         logger.info(f"Report run ID: {report_run.id}")
     
-    # Old way: get blocks from params
-    blocks = params.get('blocks', [])
-    smtp_config = None
-    for block in blocks:
-        if block['key_name'] == 'smtp-credentials':
-            smtp_config = block
-            break
-    
+    # New way: get blocks on-demand
+    smtp_config = get_block('smtp-credentials')
+
     if smtp_config:
-        logger.info(f"Found SMTP config: {smtp_config['key_name']}")
+        logger.info(f"Found SMTP config: {smtp_config.key_name}")
 
 
 # ============================================================================
@@ -242,33 +243,24 @@ def daily_workflow_old_style(logger, workspace_id, **params):
 # ============================================================================
 
 @flow
-def comparison_example(logger, workspace_id, **params):
+def comparison_example(**params):
     """
     Side-by-side comparison of old and new approaches.
     """
+    logger = get_logger()
+
     logger.info("=== Old vs New Comparison ===\n")
-    
+
     # ========================================
     # OLD WAY
     # ========================================
     logger.info("--- OLD WAY ---")
-    
+
     # Triggering flows: string-based, no type safety
     from lastcron_sdk import run_flow
     run = run_flow('send_email', parameters={'recipient': 'user@example.com'})
     if run:
         logger.info(f"Run ID: {run.id}")  # Still typed as FlowRun
-    
-    # Getting blocks: manual iteration
-    blocks = params.get('blocks', [])
-    api_key = None
-    for block in blocks:
-        if block['key_name'] == 'api-key':
-            api_key = block['value']
-            break
-    
-    if api_key:
-        logger.info(f"API key found: {api_key[:10]}...")
     
     # ========================================
     # NEW WAY (RECOMMENDED)

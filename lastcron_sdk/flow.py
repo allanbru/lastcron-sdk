@@ -20,30 +20,37 @@ _REGISTERED_FLOWS: List['FlowWrapper'] = []
 _AUTO_EXECUTE_SETUP = False
 
 class FlowContext:
+    """
+    Global context for the current flow execution.
+
+    Stores runtime information including parameters, logger,
+    workspace_id, and secret values for automatic redaction.
+
+    Note: Blocks are NOT loaded upfront. Use get_block() to fetch blocks on-demand.
+    """
     initialized = False
     parameters: Parameters
-    blocks: List[Dict[str, Any]]
     logger: OrchestratorLogger
     workspace_id: int
+    secrets: List[str] = []  # Secret values to redact from logs
 
     def __init__(
         self,
         parameters: Parameters,
-        blocks: Dict[str, Any],
         logger: OrchestratorLogger,
         workspace_id: int
     ):
         self.initialized = True
         self.parameters = parameters
-        self.blocks = blocks
         self.logger = logger
         self.workspace_id = workspace_id
+        self.secrets = []
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'FlowContext':
+        """Create FlowContext from run details dictionary."""
         return cls(
             parameters=data.get('parameters', {}),
-            blocks=data.get('blocks', []),
             logger=LOGGER,
             workspace_id=data.get('workspace_id')
         )
@@ -169,7 +176,8 @@ def flow(func: FlowFunction) -> FlowWrapper:
             # Use lazy import to prevent circular dependency issues
             from lastcron_sdk.client import OrchestratorClient
             CLIENT = OrchestratorClient(run_id, token, api_base)
-            LOGGER = OrchestratorLogger(CLIENT)
+            # Logger will be created after we fetch run details and extract secrets
+            LOGGER = None
 
         # --- Execution starts here ---
 
@@ -184,23 +192,27 @@ def flow(func: FlowFunction) -> FlowWrapper:
             # Store workspace_id globally for use by run_flow()
             WORKSPACE_ID = details.get('workspace_id')
 
-            # Prepare arguments to pass to the user's function
-            # The user's function must accept 'parameters', 'blocks', 'logger', and 'workspace_id'.
-            flow_kwargs: Dict[str, Any] = {
-                'parameters': details.get('parameters', {}),
-                'blocks': details.get('blocks', []),
-                'logger': LOGGER,
-                'workspace_id': WORKSPACE_ID
-            }
-
+            # Initialize FlowContext to extract secrets
             if FlowContext.initialized:
                 # TODO: if we're calling another run, we should trigger it via API
                 raise RuntimeError("Flow context already initialized. Ensure the flow decorator is used only once.")
 
-            FlowContext.from_dict(details)
+            flow_context = FlowContext.from_dict(details)
 
-            # Call the user's function
-            func(**flow_kwargs)
+            # Now create the logger (secrets will be added as blocks are fetched via get_block())
+            if LOGGER is None:
+                LOGGER = OrchestratorLogger(CLIENT, secrets=flow_context.secrets)
+            else:
+                # If logger already exists, add the secrets
+                LOGGER.add_secrets(flow_context.secrets)
+
+            # Get user parameters from the run details
+            user_params = details.get('parameters', {})
+
+            # Call the user's function with ONLY their custom parameters
+            # logger and workspace_id are accessible via get_logger() and get_workspace_id()
+            # or directly from FlowContext
+            func(**user_params)
 
             # --- Success Callback ---
             LOGGER.log('INFO', "Flow finished execution successfully.")
@@ -293,9 +305,35 @@ def _auto_execute_flow():
 def get_run_logger() -> OrchestratorLogger:
     """
     Returns the global logger instance for the current run.
+
+    Example:
+        >>> from lastcron_sdk import flow, get_logger
+        >>>
+        >>> @flow
+        >>> def my_flow(**params):
+        >>>     logger = get_logger()
+        >>>     logger.info("Flow started")
     """
     if FlowContext.initialized:
         return FlowContext.logger
+
+    raise RuntimeError("Flow context not initialized. Ensure the flow decorator is used.")
+
+
+def get_workspace_id() -> int:
+    """
+    Returns the workspace ID for the current run.
+
+    Example:
+        >>> from lastcron_sdk import flow, get_workspace_id
+        >>>
+        >>> @flow
+        >>> def my_flow(**params):
+        >>>     workspace_id = get_workspace_id()
+        >>>     logger.info(f"Running in workspace {workspace_id}")
+    """
+    if FlowContext.initialized:
+        return FlowContext.workspace_id
 
     raise RuntimeError("Flow context not initialized. Ensure the flow decorator is used.")
 
@@ -307,6 +345,9 @@ def get_block(key_name: str) -> Optional[Block]:
     This function fetches blocks on-demand from the API, allowing flows
     to retrieve only the configuration they need instead of loading all
     blocks upfront.
+
+    If the block is a secret, its value is automatically added to the logger's
+    redaction list to prevent accidental exposure in logs.
 
     Args:
         key_name: The block's key name (e.g., 'aws-credentials', 'api-key')
@@ -320,7 +361,8 @@ def get_block(key_name: str) -> Optional[Block]:
         >>>     # Get AWS credentials block
         >>>     aws_creds = get_block('aws-credentials')
         >>>     if aws_creds:
-        >>>         logger.info(f"Got AWS credentials: {aws_creds.value}")
+        >>>         # The secret value is automatically redacted from logs
+        >>>         logger.info(f"Got AWS credentials")
         >>>
         >>>     # Get API key block
         >>>     api_key = get_block('api-key')
@@ -330,7 +372,7 @@ def get_block(key_name: str) -> Optional[Block]:
     Raises:
         RuntimeError: If called outside of a flow context
     """
-    global CLIENT
+    global CLIENT, LOGGER
 
     if not CLIENT:
         raise RuntimeError(
@@ -342,7 +384,13 @@ def get_block(key_name: str) -> Optional[Block]:
     run_id = CLIENT.run_id
 
     # Fetch the block from the API
-    return CLIENT.api.get_block(run_id, key_name)
+    block = CLIENT.api.get_block(run_id, key_name)
+
+    # If the block is a secret, add its value to the logger's redaction list
+    if block and block.is_secret and block.value and LOGGER:
+        LOGGER.add_secret(block.value)
+
+    return block
 
 def run_flow(
     flow_name: str,
