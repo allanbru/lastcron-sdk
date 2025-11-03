@@ -39,10 +39,10 @@ class FlowRunState(str, Enum):
 class Block:
     """
     Represents a configuration block.
-    
+
     Blocks can contain secrets, configuration values, or other data
     that flows need to access. Secret blocks are encrypted in the database.
-    
+
     Attributes:
         id: Unique identifier for the block
         workspace_id: ID of the workspace this block belongs to (None for global blocks)
@@ -95,7 +95,7 @@ class Block:
 class Flow:
     """
     Represents a flow definition.
-    
+
     Attributes:
         id: Unique identifier for the flow
         workspace_id: ID of the workspace this flow belongs to
@@ -131,7 +131,7 @@ class Flow:
 class FlowRun:
     """
     Represents a flow run (execution instance).
-    
+
     Attributes:
         id: Unique identifier for the run
         flow_id: ID of the flow being executed
@@ -183,7 +183,7 @@ class FlowRun:
 class Workspace:
     """
     Represents a workspace.
-    
+
     Attributes:
         id: Unique identifier for the workspace
         name: Name of the workspace

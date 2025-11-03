@@ -10,28 +10,28 @@ def validate_and_format_timestamp(
 ) -> Optional[str]:
     """
     Validates and formats a timestamp for API submission.
-    
+
     Args:
         timestamp: Can be:
             - None: Returns None (immediate execution)
             - datetime object: Converts to ISO format string
             - str: Validates ISO format and returns as-is
-    
+
     Returns:
         ISO format string (YYYY-MM-DDTHH:MM:SS) or None
-    
+
     Raises:
         ValueError: If timestamp is invalid or in the past
-    
+
     Examples:
         >>> from datetime import datetime, timedelta
         >>> future = datetime.now() + timedelta(hours=1)
         >>> validate_and_format_timestamp(future)
         '2024-11-02T16:30:00'
-        
+
         >>> validate_and_format_timestamp("2024-11-02T16:30:00")
         '2024-11-02T16:30:00'
-        
+
         >>> validate_and_format_timestamp(None)
         None
     """
@@ -78,7 +78,7 @@ def validate_and_format_timestamp(
         except ValueError as e:
             if "must be in the future" in str(e):
                 raise
-            raise ValueError(f"Invalid timestamp string: {timestamp}. Error: {e}")
+            raise ValueError(f"Invalid timestamp string: {timestamp}. Error: {e}") from e
 
         return timestamp
 
@@ -92,13 +92,13 @@ def validate_and_format_timestamp(
 def validate_flow_name(flow_name: str) -> str:
     """
     Validates a flow name.
-    
+
     Args:
         flow_name: The name of the flow
-    
+
     Returns:
         The validated flow name
-    
+
     Raises:
         ValueError: If flow name is invalid
     """
@@ -117,13 +117,12 @@ def validate_flow_name(flow_name: str) -> str:
 def validate_parameters(parameters: Optional[dict]) -> Optional[dict]:
     """
     Validates flow parameters.
-    
+
     Args:
         parameters: Dictionary of parameters or None
-    
+
     Returns:
         The validated parameters dictionary or None
-    
     Raises:
         TypeError: If parameters is not a dict or None
     """

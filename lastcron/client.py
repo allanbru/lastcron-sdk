@@ -120,7 +120,7 @@ class OrchestratorClient:
 
 def execute_lastcron_flow(run_id: str, token: str, api_base_url: str):
     """
-    Main entry point called by the orchestrator_wrapper.py. 
+    Main entry point called by the orchestrator_wrapper.py.
     It bootstraps the execution environment.
     """
     client = OrchestratorClient(run_id, token, api_base_url)

@@ -19,7 +19,7 @@ class APIClient:
     def __init__(self, token: str, base_url: str):
         """
         Initialize the API client.
-        
+
         Args:
             token: Authentication token (run token or user token)
             base_url: Base URL for the API (e.g., http://localhost/api)
@@ -37,13 +37,13 @@ class APIClient:
     ) -> Optional[Dict[str, Any]]:
         """
         Internal method to execute HTTP requests with error handling.
-        
+
         Args:
             method: HTTP method (GET, POST, etc.)
             endpoint: API endpoint path
             json_data: JSON body data
             params: URL query parameters
-        
+
         Returns:
             Response JSON or None on error
         """
@@ -118,13 +118,13 @@ class APIClient:
     ) -> Optional[Dict[str, Any]]:
         """
         Updates the flow run status.
-        
+
         Args:
             run_id: The run ID
             state: New state (RUNNING, COMPLETED, FAILED)
             message: Optional status message
             exit_code: Optional exit code
-        
+
         Returns:
             Response data or None on error
         """
@@ -143,11 +143,11 @@ class APIClient:
     ) -> Optional[Dict[str, Any]]:
         """
         Sends a log entry for a run.
-        
+
         Args:
             run_id: The run ID
             log_entry: Log entry data (log_time, level, message)
-        
+
         Returns:
             Response data or None on error
         """
@@ -171,11 +171,11 @@ class APIClient:
     def get_flow_by_name(self, workspace_id: int, flow_name: str) -> Optional[Dict[str, Any]]:
         """
         Finds a flow by name in a workspace.
-        
+
         Args:
             workspace_id: The workspace ID
             flow_name: The flow name to search for
-        
+
         Returns:
             Flow dictionary or None if not found
         """
@@ -199,15 +199,15 @@ class APIClient:
     ) -> Optional[Dict[str, Any]]:
         """
         Triggers a flow run by flow ID.
-        
+
         Args:
             flow_id: The flow ID
             parameters: Optional parameters dictionary
             scheduled_start: Optional datetime or ISO string for scheduling
-        
+
         Returns:
             Created flow run details or None on error
-        
+
         Raises:
             ValueError: If timestamp validation fails
             TypeError: If parameters are invalid
@@ -235,16 +235,16 @@ class APIClient:
     ) -> Optional[Dict[str, Any]]:
         """
         Triggers a flow run by flow name.
-        
+
         Args:
             workspace_id: The workspace ID
             flow_name: The flow name
             parameters: Optional parameters dictionary
             scheduled_start: Optional datetime or ISO string for scheduling
-        
+
         Returns:
             Created flow run details or None on error
-        
+
         Raises:
             ValueError: If flow not found or timestamp validation fails
             TypeError: If parameters are invalid
