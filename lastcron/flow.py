@@ -17,8 +17,9 @@ LOGGER: Optional[OrchestratorLogger] = None
 WORKSPACE_ID: Optional[int] = None
 
 # Track registered flows for auto-execution
-_REGISTERED_FLOWS: List['FlowWrapper'] = []
+_REGISTERED_FLOWS: List["FlowWrapper"] = []
 _AUTO_EXECUTE_SETUP = False
+
 
 class FlowContext:
     """
@@ -29,18 +30,14 @@ class FlowContext:
 
     Note: Blocks are NOT loaded upfront. Use get_block() to fetch blocks on-demand.
     """
+
     initialized = False
     parameters: Parameters
     logger: OrchestratorLogger
     workspace_id: int
     secrets: List[str] = []  # Secret values to redact from logs
 
-    def __init__(
-        self,
-        parameters: Parameters,
-        logger: OrchestratorLogger,
-        workspace_id: int
-    ):
+    def __init__(self, parameters: Parameters, logger: OrchestratorLogger, workspace_id: int):
         self.initialized = True
         self.parameters = parameters
         self.logger = logger
@@ -51,9 +48,12 @@ class FlowContext:
     def from_dict(cls, data: Dict[str, Any]) -> None:
         """Create FlowContext from run details dictionary."""
         cls.initialized = True
-        cls.parameters = data.get('parameters', {})
-        cls.logger = LOGGER
-        cls.workspace_id = data.get('workspace_id')
+        cls.parameters = data.get("parameters", {})
+        if LOGGER is not None:
+            cls.logger = LOGGER
+        workspace_id = data.get("workspace_id")
+        if workspace_id is not None:
+            cls.workspace_id = workspace_id
 
 
 class FlowWrapper:
@@ -84,7 +84,7 @@ class FlowWrapper:
         self,
         parameters: Optional[Parameters] = None,
         scheduled_start: Optional[Timestamp] = None,
-        **kwargs
+        **kwargs,
     ) -> Optional[FlowRun]:
         """
         Submit this flow for execution.
@@ -132,7 +132,7 @@ class FlowWrapper:
             workspace_id=WORKSPACE_ID,
             flow_name=self._flow_name,
             parameters=parameters,
-            scheduled_start=scheduled_start
+            scheduled_start=scheduled_start,
         )
 
         if not result:
@@ -140,6 +140,7 @@ class FlowWrapper:
 
         # Convert to FlowRun dataclass
         return FlowRun.from_dict(result)
+
 
 def flow(func: FlowFunction) -> FlowWrapper:
     """
@@ -160,21 +161,23 @@ def flow(func: FlowFunction) -> FlowWrapper:
         >>> # Or triggered programmatically from another flow
         >>> run = my_flow.submit(parameters={'key': 'value'})
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         global CLIENT, LOGGER, WORKSPACE_ID
 
         # Initialize global Client and Logger instances only if not already done
         if not CLIENT:
-            run_id = os.environ.get('ORCH_RUN_ID')
-            token = os.environ.get('ORCH_TOKEN')
-            api_base = os.environ.get('ORCH_API_BASE_URL')
+            run_id = os.environ.get("ORCH_RUN_ID")
+            token = os.environ.get("ORCH_TOKEN")
+            api_base = os.environ.get("ORCH_API_BASE_URL")
 
             if not all([run_id, token, api_base]):
                 raise OSError("Flow cannot run. Orchestration environment variables are missing.")
 
             # Use lazy import to prevent circular dependency issues
             from lastcron.client import OrchestratorClient
+
             CLIENT = OrchestratorClient(run_id, token, api_base)
             # Logger will be created after we fetch run details and extract secrets
             LOGGER = None
@@ -190,12 +193,14 @@ def flow(func: FlowFunction) -> FlowWrapper:
                 raise RuntimeError("Failed to fetch run details for execution.")
 
             # Store workspace_id globally for use by run_flow()
-            WORKSPACE_ID = details.get('workspace_id')
+            WORKSPACE_ID = details.get("workspace_id")
 
             # Initialize FlowContext to extract secrets
             if FlowContext.initialized:
                 # TODO: if we're calling another run, we should trigger it via API
-                raise RuntimeError("Flow context already initialized. Ensure the flow decorator is used only once.")
+                raise RuntimeError(
+                    "Flow context already initialized. Ensure the flow decorator is used only once."
+                )
 
             FlowContext.from_dict(details)
 
@@ -210,7 +215,7 @@ def flow(func: FlowFunction) -> FlowWrapper:
 
             # Get user parameters from the run details
             # Ensure parameters is always a dict, never None or other types
-            user_params = details.get('parameters', {})
+            user_params = details.get("parameters", {})
             if not isinstance(user_params, dict):
                 user_params = {}
 
@@ -220,15 +225,15 @@ def flow(func: FlowFunction) -> FlowWrapper:
             func(**user_params)
 
             # --- Success Callback ---
-            LOGGER.log('INFO', "Flow finished execution successfully.")
-            CLIENT.update_status('COMPLETED', exit_code=0)
+            LOGGER.log("INFO", "Flow finished execution successfully.")
+            CLIENT.update_status("COMPLETED", exit_code=0)
 
         except Exception as e:
             # --- Failure Callback ---
             error_message = f"Flow execution failed. Error: {e}\n{traceback.format_exc()}"
-            LOGGER.log('ERROR', error_message)
-            CLIENT.update_status('FAILED', message=f"Execution error: {e}", exit_code=1)
-            sys.exit(1) # Ensure the external process exits with an error code
+            LOGGER.log("ERROR", error_message)
+            CLIENT.update_status("FAILED", message=f"Execution error: {e}", exit_code=1)
+            sys.exit(1)  # Ensure the external process exits with an error code
 
     # Return a FlowWrapper that adds the .submit() method
     flow_wrapper = FlowWrapper(wrapper, func.__name__)
@@ -260,9 +265,9 @@ def _setup_auto_execution():
     _AUTO_EXECUTE_SETUP = True
 
     # Check if we have orchestration environment variables
-    run_id = os.environ.get('ORCH_RUN_ID')
-    token = os.environ.get('ORCH_TOKEN')
-    api_base = os.environ.get('ORCH_API_BASE_URL')
+    run_id = os.environ.get("ORCH_RUN_ID")
+    token = os.environ.get("ORCH_TOKEN")
+    api_base = os.environ.get("ORCH_API_BASE_URL")
 
     # If environment variables are present, set up auto-execution
     if all([run_id, token, api_base]):
@@ -280,7 +285,8 @@ def _auto_execute_flow():
     """
     # Check if this is the main module being executed
     import __main__
-    if not hasattr(__main__, '__file__'):
+
+    if not hasattr(__main__, "__file__"):
         return
 
     main_file = os.path.abspath(__main__.__file__)
@@ -292,7 +298,7 @@ def _auto_execute_flow():
         flow_module = flow_wrapper._func.__module__
 
         # If the flow is in __main__, it's in the file being executed
-        if flow_module == '__main__':
+        if flow_module == "__main__":
             flows_to_execute.append(flow_wrapper)
 
     # Execute the first flow found (typically there's only one per file)
@@ -301,11 +307,14 @@ def _auto_execute_flow():
 
         if len(flows_to_execute) > 1:
             # If multiple flows, warn but still execute the first one
-            print(f"Warning: Multiple flows found in {main_file}. Executing: {flow_to_run._flow_name}",
-                  file=sys.stderr)
+            print(
+                f"Warning: Multiple flows found in {main_file}. Executing: {flow_to_run._flow_name}",
+                file=sys.stderr,
+            )
 
         # Execute the flow
         flow_to_run()
+
 
 def get_run_logger() -> OrchestratorLogger:
     """
@@ -397,10 +406,11 @@ def get_block(key_name: str) -> Optional[Block]:
 
     return block
 
+
 def run_flow(
     flow_name: str,
     parameters: Optional[Parameters] = None,
-    scheduled_start: Optional[Timestamp] = None
+    scheduled_start: Optional[Timestamp] = None,
 ) -> Optional[FlowRun]:
     """
     Triggers another flow in the same workspace by name.
@@ -458,7 +468,8 @@ def run_flow(
         )
 
     # Log the trigger attempt
-    LOGGER.info(f"Triggering flow '{flow_name}' in workspace {WORKSPACE_ID}")
+    if LOGGER:
+        LOGGER.info(f"Triggering flow '{flow_name}' in workspace {WORKSPACE_ID}")
 
     try:
         # Use the API client directly with the workspace_id from context
@@ -466,31 +477,35 @@ def run_flow(
             workspace_id=WORKSPACE_ID,
             flow_name=flow_name,
             parameters=parameters,
-            scheduled_start=scheduled_start
+            scheduled_start=scheduled_start,
         )
 
         if result:
             # Convert to FlowRun dataclass
             flow_run = FlowRun.from_dict(result)
-            LOGGER.info(
-                f"Successfully triggered flow '{flow_name}'. "
-                f"Run ID: {flow_run.id}, State: {flow_run.state.value}"
-            )
+            if LOGGER:
+                LOGGER.info(
+                    f"Successfully triggered flow '{flow_name}'. "
+                    f"Run ID: {flow_run.id}, State: {flow_run.state.value}"
+                )
             return flow_run
         else:
-            LOGGER.error(f"Failed to trigger flow '{flow_name}' - API returned None")
+            if LOGGER:
+                LOGGER.error(f"Failed to trigger flow '{flow_name}' - API returned None")
             return None
 
     except ValueError as e:
         # Flow not found or validation error
-        LOGGER.error(f"Failed to trigger flow '{flow_name}': {e}")
+        if LOGGER:
+            LOGGER.error(f"Failed to trigger flow '{flow_name}': {e}")
         return None
     except TypeError as e:
         # Invalid parameter types
-        LOGGER.error(f"Invalid parameters for flow '{flow_name}': {e}")
+        if LOGGER:
+            LOGGER.error(f"Invalid parameters for flow '{flow_name}': {e}")
         return None
     except Exception as e:
         # Unexpected error
-        LOGGER.error(f"Unexpected error triggering flow '{flow_name}': {e}")
+        if LOGGER:
+            LOGGER.error(f"Unexpected error triggering flow '{flow_name}': {e}")
         return None
-

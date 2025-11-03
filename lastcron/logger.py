@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     # Prevents circular imports and provides type hints
     from lastcron.client import OrchestratorClient
 
+
 class OrchestratorLogger:
     """
     Manages logging, sending entries to the Laravel API.
@@ -16,7 +17,7 @@ class OrchestratorLogger:
     accidental exposure of sensitive information.
     """
 
-    def __init__(self, client: 'OrchestratorClient', secrets: Optional[List[str]] = None):
+    def __init__(self, client: "OrchestratorClient", secrets: Optional[List[str]] = None):
         """
         Initialize the logger.
 
@@ -60,10 +61,10 @@ class OrchestratorLogger:
         redacted = message
         for secret in self.secrets:
             if secret:  # Only redact non-empty secrets
-                redacted = redacted.replace(secret, '****')
+                redacted = redacted.replace(secret, "****")
         return redacted
 
-    def log(self, level: Literal['INFO', 'WARNING', 'ERROR'], message: str):
+    def log(self, level: Literal["INFO", "WARNING", "ERROR"], message: str):
         """
         Formats and sends a single log entry via the API client.
 
@@ -81,12 +82,12 @@ class OrchestratorLogger:
 
         # Log to stdout/stderr locally as a fallback (with redaction)
         log_line = f"[{timestamp}][{level}] {redacted_message}"
-        print(log_line, file=sys.stderr if level == 'ERROR' else sys.stdout)
+        print(log_line, file=sys.stderr if level == "ERROR" else sys.stdout)
 
         log_entry = {
-            'log_time': timestamp,
-            'level': level,
-            'message': redacted_message,  # Send redacted message to API
+            "log_time": timestamp,
+            "level": level,
+            "message": redacted_message,  # Send redacted message to API
         }
 
         # Send to the API asynchronously if possible, or synchronously as a fallback
@@ -94,12 +95,12 @@ class OrchestratorLogger:
 
     def info(self, message: str):
         """Logs an informational message."""
-        self.log('INFO', message)
+        self.log("INFO", message)
 
     def warning(self, message: str):
         """Logs a warning message."""
-        self.log('WARNING', message)
+        self.log("WARNING", message)
 
     def error(self, message: str):
         """Logs an error message."""
-        self.log('ERROR', message)
+        self.log("ERROR", message)

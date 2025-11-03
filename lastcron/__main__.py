@@ -9,6 +9,5 @@ This replaces the need for orchestrator_wrapper.py in each repository.
 
 from lastcron.client import main
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-

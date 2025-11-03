@@ -25,7 +25,7 @@ class APIClient:
             base_url: Base URL for the API (e.g., http://localhost/api)
         """
         self.token = token
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.headers = {"Authorization": f"Bearer {token}"}
 
     def _request(
@@ -33,7 +33,7 @@ class APIClient:
         method: str,
         endpoint: str,
         json_data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]] = None
+        params: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Internal method to execute HTTP requests with error handling.
@@ -51,12 +51,7 @@ class APIClient:
 
         try:
             response = requests.request(
-                method,
-                url,
-                headers=self.headers,
-                json=json_data,
-                params=params,
-                timeout=30
+                method, url, headers=self.headers, json=json_data, params=params, timeout=30
             )
             response.raise_for_status()
             return response.json()
@@ -76,7 +71,7 @@ class APIClient:
         Returns:
             Dictionary with run details or None on error
         """
-        return self._request('GET', f"orchestrator/runs/{run_id}")
+        return self._request("GET", f"orchestrator/runs/{run_id}")
 
     def get_block(self, run_id: str, key_name: str) -> Optional[Block]:
         """
@@ -98,12 +93,12 @@ class APIClient:
             >>> if block:
             >>>     print(f"AWS Key: {block.value}")
         """
-        response = self._request('GET', f"orchestrator/runs/{run_id}/blocks/{key_name}")
+        response = self._request("GET", f"orchestrator/runs/{run_id}/blocks/{key_name}")
 
-        if not response or response.get('status') != 'success':
+        if not response or response.get("status") != "success":
             return None
 
-        block_data = response.get('block')
+        block_data = response.get("block")
         if not block_data:
             return None
 
@@ -114,7 +109,7 @@ class APIClient:
         run_id: str,
         state: str,
         message: Optional[str] = None,
-        exit_code: Optional[int] = None
+        exit_code: Optional[int] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Updates the flow run status.
@@ -128,19 +123,15 @@ class APIClient:
         Returns:
             Response data or None on error
         """
-        data = {'state': state}
+        data: Dict[str, Any] = {"state": state}
         if message is not None:
-            data['message'] = message
+            data["message"] = message
         if exit_code is not None:
-            data['exit_code'] = exit_code
+            data["exit_code"] = exit_code
 
-        return self._request('POST', f"orchestrator/runs/{run_id}/status", json_data=data)
+        return self._request("POST", f"orchestrator/runs/{run_id}/status", json_data=data)
 
-    def send_log_entry(
-        self,
-        run_id: str,
-        log_entry: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def send_log_entry(self, run_id: str, log_entry: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Sends a log entry for a run.
 
@@ -151,7 +142,7 @@ class APIClient:
         Returns:
             Response data or None on error
         """
-        return self._request('POST', f"orchestrator/runs/{run_id}/logs", json_data=log_entry)
+        return self._request("POST", f"orchestrator/runs/{run_id}/logs", json_data=log_entry)
 
     # --- V1 API Endpoints (accessible via both /api/v1 and /api/orchestrator) ---
 
@@ -166,7 +157,7 @@ class APIClient:
             List of flow dictionaries or None on error
         """
         # Use orchestrator endpoint when using run token (for flows triggering other flows)
-        return self._request('GET', f"orchestrator/workspaces/{workspace_id}/flows")
+        return self._request("GET", f"orchestrator/workspaces/{workspace_id}/flows")  # type: ignore[return-value]
 
     def get_flow_by_name(self, workspace_id: int, flow_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -186,7 +177,7 @@ class APIClient:
             return None
 
         for flow in flows:
-            if flow.get('name') == flow_name:
+            if flow.get("name") == flow_name:
                 return flow
 
         return None
@@ -195,7 +186,7 @@ class APIClient:
         self,
         flow_id: int,
         parameters: Optional[Dict[str, Any]] = None,
-        scheduled_start: Optional[Union[str, datetime]] = None
+        scheduled_start: Optional[Union[str, datetime]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Triggers a flow run by flow ID.
@@ -217,21 +208,21 @@ class APIClient:
         scheduled_start_str = validate_and_format_timestamp(scheduled_start)
 
         # Build request data
-        data = {}
+        data: Dict[str, Any] = {}
         if parameters is not None:
-            data['parameters'] = parameters
+            data["parameters"] = parameters
         if scheduled_start_str is not None:
-            data['scheduled_start'] = scheduled_start_str
+            data["scheduled_start"] = scheduled_start_str
 
         # Use orchestrator endpoint when using run token (for flows triggering other flows)
-        return self._request('POST', f"orchestrator/flows/{flow_id}/trigger", json_data=data)
+        return self._request("POST", f"orchestrator/flows/{flow_id}/trigger", json_data=data)
 
     def trigger_flow_by_name(
         self,
         workspace_id: int,
         flow_name: str,
         parameters: Optional[Dict[str, Any]] = None,
-        scheduled_start: Optional[Union[str, datetime]] = None
+        scheduled_start: Optional[Union[str, datetime]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Triggers a flow run by flow name.
@@ -257,15 +248,11 @@ class APIClient:
 
         # Trigger by ID
         return self.trigger_flow_by_id(
-            flow['id'],
-            parameters=parameters,
-            scheduled_start=scheduled_start
+            flow["id"], parameters=parameters, scheduled_start=scheduled_start
         )
 
     def get_flow_runs(
-        self,
-        flow_id: int,
-        limit: Optional[int] = None
+        self, flow_id: int, limit: Optional[int] = None
     ) -> Optional[List[Dict[str, Any]]]:
         """
         Gets run history for a flow.
@@ -279,10 +266,10 @@ class APIClient:
         """
         params = {}
         if limit is not None:
-            params['limit'] = limit
+            params["limit"] = limit
 
         # Use orchestrator endpoint when using run token (for flows triggering other flows)
-        return self._request('GET', f"orchestrator/flows/{flow_id}/runs", params=params)
+        return self._request("GET", f"orchestrator/flows/{flow_id}/runs", params=params)  # type: ignore[return-value]
 
     def get_run_logs(self, run_id: int) -> Optional[List[Dict[str, Any]]]:
         """
@@ -295,5 +282,4 @@ class APIClient:
             List of log entries or None on error
         """
         # Use orchestrator endpoint when using run token (for flows triggering other flows)
-        return self._request('GET', f"orchestrator/runs/{run_id}/logs")
-
+        return self._request("GET", f"orchestrator/runs/{run_id}/logs")  # type: ignore[return-value]

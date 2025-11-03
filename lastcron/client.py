@@ -40,16 +40,13 @@ class OrchestratorClient:
         details = self.api.get_run_details(self.run_id)
 
         # Cache workspace_id for later use
-        if details and 'workspace_id' in details:
-            self._workspace_id = details['workspace_id']
+        if details and "workspace_id" in details:
+            self._workspace_id = details["workspace_id"]
 
         return details
 
     def update_status(
-        self,
-        state: str,
-        message: Optional[str] = None,
-        exit_code: Optional[int] = None
+        self, state: str, message: Optional[str] = None, exit_code: Optional[int] = None
     ):
         """
         Updates the flow state (RUNNING, COMPLETED, FAILED).
@@ -87,7 +84,7 @@ class OrchestratorClient:
         self,
         flow_name: str,
         parameters: Optional[Dict[str, Any]] = None,
-        scheduled_start: Optional[Union[str, datetime]] = None
+        scheduled_start: Optional[Union[str, datetime]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Triggers another flow in the same workspace by name.
@@ -110,13 +107,12 @@ class OrchestratorClient:
             raise RuntimeError("Cannot determine workspace ID for current run")
 
         return self.api.trigger_flow_by_name(
-            workspace_id,
-            flow_name,
-            parameters=parameters,
-            scheduled_start=scheduled_start
+            workspace_id, flow_name, parameters=parameters, scheduled_start=scheduled_start
         )
 
+
 # --- Main Execution Function ---
+
 
 def execute_lastcron_flow(run_id: str, token: str, api_base_url: str):
     """
@@ -128,24 +124,24 @@ def execute_lastcron_flow(run_id: str, token: str, api_base_url: str):
 
     try:
         # --- 1. Initial Status Update ---
-        client.update_status('RUNNING')
-        logger.log('INFO', f"LastCron execution started for Run ID: {run_id}.")
+        client.update_status("RUNNING")
+        logger.log("INFO", f"LastCron execution started for Run ID: {run_id}.")
 
         # --- 2. Fetch Details ---
         details = client.get_run_details()
         if not details:
             raise RuntimeError("Could not retrieve run details from API.")
 
-        entrypoint = details['flow_entrypoint']
+        entrypoint = details["flow_entrypoint"]
 
         # --- 3. Execute the Decorated Flow ---
 
         # Dynamically import the entrypoint function defined by the user
-        module_path, func_name = entrypoint.split(':')
+        module_path, func_name = entrypoint.split(":")
 
         # Correctly import the module from the user's repository structure
         # (e.g., 'src/pipeline.py' becomes 'src.pipeline')
-        module_path = module_path.replace('/', '.').replace('.py', '')
+        module_path = module_path.replace("/", ".").replace(".py", "")
 
         # Temporarily add the repository path to Python's path so imports work
         repo_root = os.getcwd()
@@ -160,13 +156,15 @@ def execute_lastcron_flow(run_id: str, token: str, api_base_url: str):
         flow_function()
 
     except Exception as e:
-        error_details = f"Execution failed during bootstrap or pre-run phase: {e}\n{traceback.format_exc()}"
-        logger.log('ERROR', error_details)
-        client.update_status('FAILED', message=f"Bootstrap/Pre-run error: {e}", exit_code=1)
+        error_details = (
+            f"Execution failed during bootstrap or pre-run phase: {e}\n{traceback.format_exc()}"
+        )
+        logger.log("ERROR", error_details)
+        client.update_status("FAILED", message=f"Bootstrap/Pre-run error: {e}", exit_code=1)
         sys.exit(1)
     finally:
         # Clean up path change
-        if 'repo_root' in locals():
+        if "repo_root" in locals():
             sys.path.pop(0)
 
 
@@ -182,9 +180,9 @@ def main():
     """
     # The PHP FlowExecutor sets these environment variables:
     # ORCH_RUN_ID, ORCH_TOKEN, ORCH_API_BASE_URL
-    run_id = os.environ.get('ORCH_RUN_ID')
-    token = os.environ.get('ORCH_TOKEN')
-    api_base_url = os.environ.get('ORCH_API_BASE_URL')
+    run_id = os.environ.get("ORCH_RUN_ID")
+    token = os.environ.get("ORCH_TOKEN")
+    api_base_url = os.environ.get("ORCH_API_BASE_URL")
 
     if not all([run_id, token, api_base_url]):
         # This scenario means the PHP launch failed to set critical environment variables
@@ -203,5 +201,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

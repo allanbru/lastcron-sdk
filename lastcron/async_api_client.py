@@ -24,7 +24,7 @@ class AsyncAPIClient:
             base_url: Base URL for the API (e.g., http://localhost/api)
         """
         self.token = token
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.headers = {"Authorization": f"Bearer {token}"}
         self._session: Optional[aiohttp.ClientSession] = None
 
@@ -43,7 +43,7 @@ class AsyncAPIClient:
         method: str,
         endpoint: str,
         json_data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, Any]] = None
+        params: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Internal method to execute async HTTP requests with error handling.
@@ -64,11 +64,7 @@ class AsyncAPIClient:
 
         try:
             async with self._session.request(
-                method,
-                url,
-                json=json_data,
-                params=params,
-                timeout=aiohttp.ClientTimeout(total=30)
+                method, url, json=json_data, params=params, timeout=aiohttp.ClientTimeout(total=30)
             ) as response:
                 response.raise_for_status()
                 return await response.json()
@@ -88,14 +84,14 @@ class AsyncAPIClient:
         Returns:
             Dictionary with run details or None on error
         """
-        return await self._request('GET', f"orchestrator/runs/{run_id}")
+        return await self._request("GET", f"orchestrator/runs/{run_id}")
 
     async def update_run_status(
         self,
         run_id: str,
         state: str,
         message: Optional[str] = None,
-        exit_code: Optional[int] = None
+        exit_code: Optional[int] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Updates the flow run status.
@@ -109,18 +105,16 @@ class AsyncAPIClient:
         Returns:
             Response data or None on error
         """
-        data = {'state': state}
+        data: Dict[str, Any] = {"state": state}
         if message is not None:
-            data['message'] = message
+            data["message"] = message
         if exit_code is not None:
-            data['exit_code'] = exit_code
+            data["exit_code"] = exit_code
 
-        return await self._request('POST', f"orchestrator/runs/{run_id}/status", json_data=data)
+        return await self._request("POST", f"orchestrator/runs/{run_id}/status", json_data=data)
 
     async def send_log_entry(
-        self,
-        run_id: str,
-        log_entry: Dict[str, Any]
+        self, run_id: str, log_entry: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
         Sends a log entry for a run.
@@ -132,7 +126,7 @@ class AsyncAPIClient:
         Returns:
             Response data or None on error
         """
-        return await self._request('POST', f"orchestrator/runs/{run_id}/logs", json_data=log_entry)
+        return await self._request("POST", f"orchestrator/runs/{run_id}/logs", json_data=log_entry)
 
     # --- V1 API Endpoints ---
 
@@ -146,7 +140,7 @@ class AsyncAPIClient:
         Returns:
             List of flow dictionaries or None on error
         """
-        return await self._request('GET', f"v1/workspaces/{workspace_id}/flows")
+        return await self._request("GET", f"v1/workspaces/{workspace_id}/flows")  # type: ignore[return-value]
 
     async def get_flow_by_name(self, workspace_id: int, flow_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -166,7 +160,7 @@ class AsyncAPIClient:
             return None
 
         for flow in flows:
-            if flow.get('name') == flow_name:
+            if flow.get("name") == flow_name:
                 return flow
 
         return None
@@ -175,7 +169,7 @@ class AsyncAPIClient:
         self,
         flow_id: int,
         parameters: Optional[Dict[str, Any]] = None,
-        scheduled_start: Optional[Union[str, datetime]] = None
+        scheduled_start: Optional[Union[str, datetime]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Triggers a flow run by flow ID.
@@ -197,20 +191,20 @@ class AsyncAPIClient:
         scheduled_start_str = validate_and_format_timestamp(scheduled_start)
 
         # Build request data
-        data = {}
+        data: Dict[str, Any] = {}
         if parameters is not None:
-            data['parameters'] = parameters
+            data["parameters"] = parameters
         if scheduled_start_str is not None:
-            data['scheduled_start'] = scheduled_start_str
+            data["scheduled_start"] = scheduled_start_str
 
-        return await self._request('POST', f"v1/flows/{flow_id}/trigger", json_data=data)
+        return await self._request("POST", f"v1/flows/{flow_id}/trigger", json_data=data)
 
     async def trigger_flow_by_name(
         self,
         workspace_id: int,
         flow_name: str,
         parameters: Optional[Dict[str, Any]] = None,
-        scheduled_start: Optional[Union[str, datetime]] = None
+        scheduled_start: Optional[Union[str, datetime]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Triggers a flow run by flow name.
@@ -236,15 +230,11 @@ class AsyncAPIClient:
 
         # Trigger by ID
         return await self.trigger_flow_by_id(
-            flow['id'],
-            parameters=parameters,
-            scheduled_start=scheduled_start
+            flow["id"], parameters=parameters, scheduled_start=scheduled_start
         )
 
     async def get_flow_runs(
-        self,
-        flow_id: int,
-        limit: Optional[int] = None
+        self, flow_id: int, limit: Optional[int] = None
     ) -> Optional[List[Dict[str, Any]]]:
         """
         Gets run history for a flow.
@@ -258,9 +248,9 @@ class AsyncAPIClient:
         """
         params = {}
         if limit is not None:
-            params['limit'] = limit
+            params["limit"] = limit
 
-        return await self._request('GET', f"v1/flows/{flow_id}/runs", params=params)
+        return await self._request("GET", f"v1/flows/{flow_id}/runs", params=params)  # type: ignore[return-value]
 
     async def get_run_logs(self, run_id: int) -> Optional[List[Dict[str, Any]]]:
         """
@@ -272,11 +262,10 @@ class AsyncAPIClient:
         Returns:
             List of log entries or None on error
         """
-        return await self._request('GET', f"v1/runs/{run_id}/logs")
+        return await self._request("GET", f"v1/runs/{run_id}/logs")  # type: ignore[return-value]
 
     async def close(self):
         """Close the session explicitly."""
         if self._session:
             await self._session.close()
             self._session = None
-

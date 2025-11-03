@@ -5,9 +5,7 @@ from datetime import datetime, timezone
 from typing import Optional, Union
 
 
-def validate_and_format_timestamp(
-    timestamp: Optional[Union[str, datetime]]
-) -> Optional[str]:
+def validate_and_format_timestamp(timestamp: Optional[Union[str, datetime]]) -> Optional[str]:
     """
     Validates and formats a timestamp for API submission.
 
@@ -57,7 +55,7 @@ def validate_and_format_timestamp(
     # Handle string timestamps
     if isinstance(timestamp, str):
         # Validate ISO format
-        iso_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$'
+        iso_pattern = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$"
         if not re.match(iso_pattern, timestamp):
             raise ValueError(
                 f"Invalid timestamp format. Expected ISO format (YYYY-MM-DDTHH:MM:SS), "
@@ -67,7 +65,7 @@ def validate_and_format_timestamp(
         # Try to parse and validate it's in the future
         try:
             # Handle timezone-aware strings by removing timezone info for comparison
-            timestamp_clean = timestamp.split('+')[0].split('Z')[0].split('.')[0]
+            timestamp_clean = timestamp.split("+")[0].split("Z")[0].split(".")[0]
             parsed = datetime.fromisoformat(timestamp_clean)
 
             if parsed < datetime.now():
@@ -135,4 +133,3 @@ def validate_parameters(parameters: Optional[dict]) -> Optional[dict]:
         )
 
     return parameters
-

@@ -14,8 +14,10 @@ from typing import Any, Callable, Dict, List, Optional, Union
 # Enums
 # ============================================================================
 
+
 class BlockType(str, Enum):
     """Types of configuration blocks."""
+
     SECRET = "SECRET"
     STRING = "STRING"
     JSON = "JSON"
@@ -24,6 +26,7 @@ class BlockType(str, Enum):
 
 class FlowRunState(str, Enum):
     """States of a flow run."""
+
     PENDING = "PENDING"
     LAUNCHING = "LAUNCHING"
     RUNNING = "RUNNING"
@@ -34,6 +37,7 @@ class FlowRunState(str, Enum):
 # ============================================================================
 # Block Types
 # ============================================================================
+
 
 @dataclass(frozen=True)
 class Block:
@@ -53,6 +57,7 @@ class Block:
         created_at: When the block was created
         updated_at: When the block was last updated
     """
+
     key_name: str
     type: BlockType
     value: str
@@ -63,17 +68,17 @@ class Block:
     updated_at: Optional[datetime] = None
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Block':
+    def from_dict(cls, data: Dict[str, Any]) -> "Block":
         """Create a Block from a dictionary (API response)."""
         return cls(
-            id=data.get('id'),
-            workspace_id=data.get('workspace_id'),
-            key_name=data['key_name'],
-            type=BlockType(data['type']),
-            value=data['value'],
-            is_secret=data.get('is_secret', False),
-            created_at=cls._parse_datetime(data.get('created_at')),
-            updated_at=cls._parse_datetime(data.get('updated_at'))
+            id=data.get("id"),
+            workspace_id=data.get("workspace_id"),
+            key_name=data["key_name"],
+            type=BlockType(data["type"]),
+            value=data["value"],
+            is_secret=data.get("is_secret", False),
+            created_at=cls._parse_datetime(data.get("created_at")),
+            updated_at=cls._parse_datetime(data.get("updated_at")),
         )
 
     @staticmethod
@@ -82,7 +87,7 @@ class Block:
         if not dt_str:
             return None
         try:
-            return datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
+            return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
         except (ValueError, AttributeError):
             return None
 
@@ -90,6 +95,7 @@ class Block:
 # ============================================================================
 # Flow Types
 # ============================================================================
+
 
 @dataclass(frozen=True)
 class Flow:
@@ -105,6 +111,7 @@ class Flow:
         created_at: When the flow was created
         updated_at: When the flow was last updated
     """
+
     id: int
     workspace_id: int
     name: str
@@ -114,16 +121,16 @@ class Flow:
     updated_at: Optional[datetime] = None
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Flow':
+    def from_dict(cls, data: Dict[str, Any]) -> "Flow":
         """Create a Flow from a dictionary (API response)."""
         return cls(
-            id=data['id'],
-            workspace_id=data['workspace_id'],
-            name=data['name'],
-            entrypoint=data['entrypoint'],
-            description=data.get('description'),
-            created_at=Block._parse_datetime(data.get('created_at')),
-            updated_at=Block._parse_datetime(data.get('updated_at'))
+            id=data["id"],
+            workspace_id=data["workspace_id"],
+            name=data["name"],
+            entrypoint=data["entrypoint"],
+            description=data.get("description"),
+            created_at=Block._parse_datetime(data.get("created_at")),
+            updated_at=Block._parse_datetime(data.get("updated_at")),
         )
 
 
@@ -145,6 +152,7 @@ class FlowRun:
         created_at: When the run was created
         updated_at: When the run was last updated
     """
+
     id: int
     flow_id: int
     state: FlowRunState
@@ -158,26 +166,27 @@ class FlowRun:
     updated_at: Optional[datetime] = None
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'FlowRun':
+    def from_dict(cls, data: Dict[str, Any]) -> "FlowRun":
         """Create a FlowRun from a dictionary (API response)."""
         return cls(
-            id=data['id'],
-            flow_id=data['flow_id'],
-            state=FlowRunState(data['state']),
-            parameters=data.get('parameters', {}),
-            scheduled_start=Block._parse_datetime(data.get('scheduled_start')),
-            started_at=Block._parse_datetime(data.get('started_at')),
-            completed_at=Block._parse_datetime(data.get('completed_at')),
-            exit_code=data.get('exit_code'),
-            message=data.get('message'),
-            created_at=Block._parse_datetime(data.get('created_at')),
-            updated_at=Block._parse_datetime(data.get('updated_at'))
+            id=data["id"],
+            flow_id=data["flow_id"],
+            state=FlowRunState(data["state"]),
+            parameters=data.get("parameters", {}),
+            scheduled_start=Block._parse_datetime(data.get("scheduled_start")),
+            started_at=Block._parse_datetime(data.get("started_at")),
+            completed_at=Block._parse_datetime(data.get("completed_at")),
+            exit_code=data.get("exit_code"),
+            message=data.get("message"),
+            created_at=Block._parse_datetime(data.get("created_at")),
+            updated_at=Block._parse_datetime(data.get("updated_at")),
         )
 
 
 # ============================================================================
 # Workspace Types
 # ============================================================================
+
 
 @dataclass(frozen=True)
 class Workspace:
@@ -192,6 +201,7 @@ class Workspace:
         created_at: When the workspace was created
         updated_at: When the workspace was last updated
     """
+
     id: int
     name: str
     git_repo_url: Optional[str] = None
@@ -200,15 +210,15 @@ class Workspace:
     updated_at: Optional[datetime] = None
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Workspace':
+    def from_dict(cls, data: Dict[str, Any]) -> "Workspace":
         """Create a Workspace from a dictionary (API response)."""
         return cls(
-            id=data['id'],
-            name=data['name'],
-            git_repo_url=data.get('git_repo_url'),
-            git_branch=data.get('git_branch'),
-            created_at=Block._parse_datetime(data.get('created_at')),
-            updated_at=Block._parse_datetime(data.get('updated_at'))
+            id=data["id"],
+            name=data["name"],
+            git_repo_url=data.get("git_repo_url"),
+            git_branch=data.get("git_branch"),
+            created_at=Block._parse_datetime(data.get("created_at")),
+            updated_at=Block._parse_datetime(data.get("updated_at")),
         )
 
 
@@ -237,9 +247,11 @@ APIResponseList = List[Dict[str, Any]]
 # Request/Response Types
 # ============================================================================
 
+
 @dataclass
 class TriggerFlowRequest:
     """Request to trigger a flow."""
+
     flow_name: str
     parameters: Optional[Parameters] = None
     scheduled_start: Optional[Timestamp] = None
@@ -248,10 +260,11 @@ class TriggerFlowRequest:
 @dataclass
 class TriggerFlowResponse:
     """Response from triggering a flow."""
+
     run: FlowRun
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TriggerFlowResponse':
+    def from_dict(cls, data: Dict[str, Any]) -> "TriggerFlowResponse":
         """Create from API response."""
         return cls(run=FlowRun.from_dict(data))
 
@@ -259,6 +272,7 @@ class TriggerFlowResponse:
 @dataclass
 class GetBlockRequest:
     """Request to get a block by name."""
+
     key_name: str
     workspace_id: Optional[int] = None
 
@@ -266,10 +280,10 @@ class GetBlockRequest:
 @dataclass
 class ListBlocksResponse:
     """Response from listing blocks."""
+
     blocks: BlockList
 
     @classmethod
-    def from_dict(cls, data: List[Dict[str, Any]]) -> 'ListBlocksResponse':
+    def from_dict(cls, data: List[Dict[str, Any]]) -> "ListBlocksResponse":
         """Create from API response."""
         return cls(blocks=[Block.from_dict(b) for b in data])
-
