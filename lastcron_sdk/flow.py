@@ -50,9 +50,9 @@ class FlowContext:
     def from_dict(cls, data: Dict[str, Any]) -> None:
         """Create FlowContext from run details dictionary."""
         cls.initialized = True
-        cls.parameters=data.get('parameters', {}),
-        cls.logger=LOGGER,
-        cls.workspace_id=data.get('workspace_id')
+        cls.parameters = data.get('parameters', {})
+        cls.logger = LOGGER
+        cls.workspace_id = data.get('workspace_id')
 
 
 class FlowWrapper:
