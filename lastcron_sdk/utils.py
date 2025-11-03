@@ -1,6 +1,6 @@
 # lastcron_sdk/utils.py
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Union
 import re
 
@@ -40,11 +40,17 @@ def validate_and_format_timestamp(
     
     # Handle datetime objects
     if isinstance(timestamp, datetime):
+        # Get current time - use UTC if timestamp is timezone-aware, otherwise use naive
+        if timestamp.tzinfo is not None:
+            current_time = datetime.now(timezone.utc)
+        else:
+            current_time = datetime.now()
+
         # Check if timestamp is in the past
-        if timestamp < datetime.now():
+        if timestamp < current_time:
             raise ValueError(
                 f"Scheduled start time must be in the future. "
-                f"Provided: {timestamp.isoformat()}, Current: {datetime.now().isoformat()}"
+                f"Provided: {timestamp.isoformat()}, Current: {current_time.isoformat()}"
             )
         return timestamp.isoformat()
     

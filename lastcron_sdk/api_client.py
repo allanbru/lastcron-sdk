@@ -151,19 +151,20 @@ class APIClient:
         """
         return self._request('POST', f"orchestrator/runs/{run_id}/logs", json_data=log_entry)
     
-    # --- V1 API Endpoints ---
-    
+    # --- V1 API Endpoints (accessible via both /api/v1 and /api/orchestrator) ---
+
     def list_workspace_flows(self, workspace_id: int) -> Optional[List[Dict[str, Any]]]:
         """
         Lists all flows in a workspace.
-        
+
         Args:
             workspace_id: The workspace ID
-        
+
         Returns:
             List of flow dictionaries or None on error
         """
-        return self._request('GET', f"v1/workspaces/{workspace_id}/flows")
+        # Use orchestrator endpoint when using run token (for flows triggering other flows)
+        return self._request('GET', f"orchestrator/workspaces/{workspace_id}/flows")
     
     def get_flow_by_name(self, workspace_id: int, flow_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -219,8 +220,9 @@ class APIClient:
             data['parameters'] = parameters
         if scheduled_start_str is not None:
             data['scheduled_start'] = scheduled_start_str
-        
-        return self._request('POST', f"v1/flows/{flow_id}/trigger", json_data=data)
+
+        # Use orchestrator endpoint when using run token (for flows triggering other flows)
+        return self._request('POST', f"orchestrator/flows/{flow_id}/trigger", json_data=data)
     
     def trigger_flow_by_name(
         self,
@@ -259,35 +261,37 @@ class APIClient:
         )
     
     def get_flow_runs(
-        self, 
+        self,
         flow_id: int,
         limit: Optional[int] = None
     ) -> Optional[List[Dict[str, Any]]]:
         """
         Gets run history for a flow.
-        
+
         Args:
             flow_id: The flow ID
             limit: Optional limit on number of runs to return
-        
+
         Returns:
             List of run dictionaries or None on error
         """
         params = {}
         if limit is not None:
             params['limit'] = limit
-        
-        return self._request('GET', f"v1/flows/{flow_id}/runs", params=params)
-    
+
+        # Use orchestrator endpoint when using run token (for flows triggering other flows)
+        return self._request('GET', f"orchestrator/flows/{flow_id}/runs", params=params)
+
     def get_run_logs(self, run_id: int) -> Optional[List[Dict[str, Any]]]:
         """
         Gets logs for a specific run.
-        
+
         Args:
             run_id: The run ID
-        
+
         Returns:
             List of log entries or None on error
         """
-        return self._request('GET', f"v1/runs/{run_id}/logs")
+        # Use orchestrator endpoint when using run token (for flows triggering other flows)
+        return self._request('GET', f"orchestrator/runs/{run_id}/logs")
 

@@ -430,7 +430,7 @@ def run_flow(
         >>> # Trigger a flow immediately with parameters
         >>> run = run_flow('data_processing', parameters={'batch_size': 100})
         >>> if run:
-        >>>     print(f"Triggered flow run ID: {run['id']}")
+        >>>     print(f"Triggered flow run ID: {run.id}")
 
         >>> # Schedule a flow for later
         >>> from datetime import datetime, timedelta
