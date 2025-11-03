@@ -8,10 +8,10 @@ Key features:
 1. Secrets are fetched on-demand using get_block()
 2. Secret values are automatically added to the logger's redaction list
 3. Any log message containing a secret value will have it replaced with '****'
-4. Logger and workspace_id are accessed via get_logger() and get_workspace_id()
+4. Logger and workspace_id are accessed via get_run_logger() and get_workspace_id()
 """
 
-from lastcron_sdk import flow, get_block, get_logger, get_workspace_id
+from lastcron_sdk import flow, get_block, get_run_logger, get_workspace_id
 
 @flow
 def secure_api_caller(**params):
@@ -21,7 +21,7 @@ def secure_api_caller(**params):
     The SDK automatically redacts secret values from all log messages,
     preventing accidental exposure in logs.
     """
-    logger = get_logger()
+    logger = get_run_logger()
     workspace_id = get_workspace_id()
 
     logger.info("Starting secure API caller")
@@ -73,7 +73,7 @@ def multi_secret_example(**params):
     """
     Example showing multiple secrets being redacted.
     """
-    logger = get_logger()
+    logger = get_run_logger()
 
     logger.info("Fetching multiple secrets")
     
@@ -107,7 +107,7 @@ def non_secret_example(**params):
     """
     Example showing that non-secret blocks are NOT redacted.
     """
-    logger = get_logger()
+    logger = get_run_logger()
 
     logger.info("Fetching configuration blocks")
     

@@ -3,20 +3,20 @@ Example: Clean Flow Signatures
 
 This demonstrates the new clean flow signature pattern where:
 1. Flows only receive their custom parameters (no logger, workspace_id, blocks)
-2. Logger is accessed via get_logger()
+2. Logger is accessed via get_run_logger()
 3. Workspace ID is accessed via get_workspace_id()
 4. Blocks are fetched on-demand via get_block()
 5. Secrets are automatically redacted from logs
 """
 
-from lastcron_sdk import flow, get_logger, get_workspace_id, get_block
+from lastcron_sdk import flow, get_run_logger, get_workspace_id, get_block
 
 
 @flow
 def process_data(batch_size=100, source='api', **kwargs):
     """
     A clean flow that only receives its custom parameters.
-    
+
     Notice how the function signature is clean and focused:
     - No logger parameter
     - No workspace_id parameter
@@ -24,7 +24,7 @@ def process_data(batch_size=100, source='api', **kwargs):
     - Just your business logic parameters!
     """
     # Get logger and workspace_id from context
-    logger = get_logger()
+    logger = get_run_logger()
     workspace_id = get_workspace_id()
     
     logger.info(f"Processing data in workspace {workspace_id}")
@@ -45,7 +45,7 @@ def send_notification(recipient, message, priority='normal'):
     """
     Another clean flow - only receives what it needs.
     """
-    logger = get_logger()
+    logger = get_run_logger()
     
     logger.info(f"Sending {priority} priority notification to {recipient}")
     
@@ -68,7 +68,7 @@ def orchestrator(environment='production'):
     """
     Orchestrator flow that triggers other flows.
     """
-    logger = get_logger()
+    logger = get_run_logger()
     workspace_id = get_workspace_id()
     
     logger.info(f"Orchestrating workflows in {environment} environment")
@@ -110,7 +110,7 @@ def old_style_flow(**params):
     """
     Old style: Had to extract everything from params.
     """
-    logger = get_logger()
+    logger = get_run_logger()
     
     # Had to extract parameters manually
     parameters = params.get('parameters', {})
@@ -134,7 +134,7 @@ def new_style_flow(batch_size=100, source='api'):
     """
     New style: Clean function signature with your parameters.
     """
-    logger = get_logger()
+    logger = get_run_logger()
     
     # Parameters are directly available as function arguments!
     logger.info(f"Processing with batch_size={batch_size}")
@@ -160,7 +160,7 @@ def new_style_flow(batch_size=100, source='api'):
    @flow
    def my_flow(user_id: int, email: str, active: bool = True):
        # IDE knows the types of your parameters!
-       logger = get_logger()
+       logger = get_run_logger()
        logger.info(f"Processing user {user_id}")
 
 ✅ EASIER TESTING
@@ -196,7 +196,7 @@ STEP 1: Update function signature
 
 STEP 2: Get logger and workspace_id from context
    Add at the start of your flow:
-   logger = get_logger()
+   logger = get_run_logger()
    workspace_id = get_workspace_id()
 
 STEP 3: Extract parameters directly

@@ -47,13 +47,12 @@ class FlowContext:
         self.secrets = []
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'FlowContext':
+    def from_dict(cls, data: Dict[str, Any]) -> None:
         """Create FlowContext from run details dictionary."""
-        return cls(
-            parameters=data.get('parameters', {}),
-            logger=LOGGER,
-            workspace_id=data.get('workspace_id')
-        )
+        cls.initialized = True
+        cls.parameters=data.get('parameters', {}),
+        cls.logger=LOGGER,
+        cls.workspace_id=data.get('workspace_id')
 
 
 class FlowWrapper:
@@ -197,20 +196,25 @@ def flow(func: FlowFunction) -> FlowWrapper:
                 # TODO: if we're calling another run, we should trigger it via API
                 raise RuntimeError("Flow context already initialized. Ensure the flow decorator is used only once.")
 
-            flow_context = FlowContext.from_dict(details)
+            FlowContext.from_dict(details)
 
             # Now create the logger (secrets will be added as blocks are fetched via get_block())
             if LOGGER is None:
-                LOGGER = OrchestratorLogger(CLIENT, secrets=flow_context.secrets)
+                LOGGER = OrchestratorLogger(CLIENT, secrets=FlowContext.secrets)
             else:
                 # If logger already exists, add the secrets
-                LOGGER.add_secrets(flow_context.secrets)
+                LOGGER.add_secrets(FlowContext.secrets)
+                
+            FlowContext.logger = LOGGER
 
             # Get user parameters from the run details
+            # Ensure parameters is always a dict, never None or other types
             user_params = details.get('parameters', {})
+            if not isinstance(user_params, dict):
+                user_params = {}
 
             # Call the user's function with ONLY their custom parameters
-            # logger and workspace_id are accessible via get_logger() and get_workspace_id()
+            # logger and workspace_id are accessible via get_run_logger() and get_workspace_id()
             # or directly from FlowContext
             func(**user_params)
 
@@ -307,11 +311,11 @@ def get_run_logger() -> OrchestratorLogger:
     Returns the global logger instance for the current run.
 
     Example:
-        >>> from lastcron_sdk import flow, get_logger
+        >>> from lastcron_sdk import flow, get_run_logger
         >>>
         >>> @flow
         >>> def my_flow(**params):
-        >>>     logger = get_logger()
+        >>>     logger = get_run_logger()
         >>>     logger.info("Flow started")
     """
     if FlowContext.initialized:

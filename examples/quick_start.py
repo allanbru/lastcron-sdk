@@ -10,7 +10,7 @@ This example demonstrates the new features in a simple, practical way:
 Run this to see how the new SDK features work together.
 """
 
-from lastcron_sdk import flow, get_block, get_logger, get_workspace_id, Block, FlowRun, BlockType
+from lastcron_sdk import flow, get_block, get_run_logger, get_workspace_id, Block, FlowRun, BlockType
 from datetime import datetime, timedelta
 
 
@@ -24,9 +24,9 @@ def send_email(recipient='user@example.com', subject='Hello', **params):
     Sends an email using SMTP credentials from a block.
 
     Notice: No logger or workspace_id parameters!
-    Access them via get_logger() and get_workspace_id()
+    Access them via get_run_logger() and get_workspace_id()
     """
-    logger = get_logger()
+    logger = get_run_logger()
 
     logger.info(f"Sending email to {recipient}")
     
@@ -55,7 +55,7 @@ def generate_report(type='daily', **params):
     """
     Generates a report and saves it to S3.
     """
-    logger = get_logger()
+    logger = get_run_logger()
 
     logger.info(f"Generating {type} report")
     
@@ -83,7 +83,7 @@ def cleanup_old_data(days_old=30, **params):
     """
     Cleans up old data from the database.
     """
-    logger = get_logger()
+    logger = get_run_logger()
 
     logger.info(f"Cleaning up data older than {days_old} days")
     
@@ -126,7 +126,7 @@ def daily_workflow(**params):
     - Scheduling flows for later
     - Clean flow signatures (no logger/workspace_id params)
     """
-    logger = get_logger()
+    logger = get_run_logger()
     workspace_id = get_workspace_id()
 
     logger.info("=== Daily Workflow Started ===")
@@ -220,7 +220,7 @@ def daily_workflow_old_style(**params):
     """
     from lastcron_sdk import run_flow
 
-    logger = get_logger()
+    logger = get_run_logger()
 
     logger.info("=== Daily Workflow (Old Style) ===")
     
@@ -247,7 +247,7 @@ def comparison_example(**params):
     """
     Side-by-side comparison of old and new approaches.
     """
-    logger = get_logger()
+    logger = get_run_logger()
 
     logger.info("=== Old vs New Comparison ===\n")
 
