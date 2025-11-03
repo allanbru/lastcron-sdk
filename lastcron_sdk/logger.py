@@ -35,7 +35,7 @@ class OrchestratorLogger:
             secret: The secret value to redact
         """
         if secret and secret not in self.secrets:
-            self.secrets.append(secret)
+            self.secrets.append(str(secret))
 
     def add_secrets(self, secrets: List[str]):
         """
@@ -45,7 +45,7 @@ class OrchestratorLogger:
             secrets: List of secret values to redact
         """
         for secret in secrets:
-            self.add_secret(secret)
+            self.add_secret(str(secret))
 
     def _redact_secrets(self, message: str) -> str:
         """
@@ -75,7 +75,7 @@ class OrchestratorLogger:
             message: The message to log (will be redacted)
         """
         # Redact secrets from the message
-        redacted_message = self._redact_secrets(message)
+        redacted_message = self._redact_secrets(str(message))
 
         timestamp = datetime.datetime.now().isoformat()
 
